@@ -149,21 +149,27 @@ int main(int argc, char** argv) {
                             std::cout << "Switching to device " << static_cast<uint32_t>(conf.device_id) << '\n';
                             SDL_SetGamepadLED(gamepad, conf.device_id == 1 ? 255 : 0, 0, conf.device_id == 2 ? 255 : 0);
                             pelco.setDevice(conf.device_id);
+
+                            if (saveSlotConfirmed)
+                                std::cout << "Saving to preset aborted\n";
                             saveSlotConfirmed = false;
                             break;
                         case SDL_GAMEPAD_BUTTON_DPAD_DOWN:
                             std::cout << "Calling preset from slot " << static_cast<uint32_t>(saveSlot) << '\n';
-                            handle_error(pelco.sendCustomCommand(0x0007, static_cast<uint16_t>(saveSlot)));
+                            handle_error(pelco.sendCustomCommand(0x0007, saveSlot));
                             saveSlotConfirmed = false;
                             break;
                         case SDL_GAMEPAD_BUTTON_DPAD_UP:
                             if (!saveSlotConfirmed) {
-                                std::cout << "You are trying to save a preset to slot " << static_cast<uint32_t>(saveSlot) << ". To confirm press DPAD UP again";
-                                SDL_RumbleGamepad(gamepad, 0x0, 0x8FFF, 100);
+                                SDL_RumbleGamepad(gamepad, 0x8FFF, 0x8FFF, 100);
+                                std::cout << "You are trying to save a preset to slot " << static_cast<uint32_t>(saveSlot) << ". To confirm press DPAD UP again\n";
                                 saveSlotConfirmed = true;
                             } else {
+                                SDL_RumbleGamepad(gamepad, 0x0, 0x8FFF, 50);
+                                std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                                SDL_RumbleGamepad(gamepad, 0x0, 0x8FFF, 50);
                                 std::cout << "Saving preset to slot " << static_cast<uint32_t>(saveSlot) << '\n';
-                                handle_error(pelco.sendCustomCommand(0x0003, static_cast<uint16_t>(saveSlot)));
+                                handle_error(pelco.sendCustomCommand(0x0003, saveSlot));
                                 saveSlotConfirmed = false;
                             }
                             break;
@@ -173,9 +179,13 @@ int main(int argc, char** argv) {
                         case SDL_GAMEPAD_BUTTON_DPAD_RIGHT:
                             saveSlot++;
                             print_slot:
-                            saveSlotConfirmed = false;
                             std::cout << "Switched to slot " << static_cast<uint32_t>(saveSlot) << '\n';
                             SDL_SetGamepadPlayerIndex(gamepad, saveSlot);
+
+                            if (saveSlotConfirmed)
+                                std::cout << "Saving to preset aborted\n";
+                            saveSlotConfirmed = false;
+                            [[fallthrough]];
                         default:
                             break;
                     }

@@ -20,3 +20,7 @@
 - Fixed inverted pan/tilt directions
 - Fixed missing exit(1) when running ptzctrl with no arguments
 - Push to GitHub
+
+## 0.1.4
+- Added vibration feedback when saving presets
+- Added a message when saving presets is aborted

@@ -79,7 +79,7 @@ std::expected<std::unique_ptr<abstract_stream>, std::string> ip_server::awaitCon
             ssl_stream.handshake(asio::ssl::stream_base::client);
             return std::make_unique<tls_stream>(std::move(ssl_stream));
         } else
-            return std::make_unique<pain_stream>(std::move(socket));
+            return std::make_unique<plain_stream>(std::move(socket));
 
     } catch (const std::exception& e) {
         return std::unexpected(e.what());

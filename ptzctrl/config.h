@@ -11,8 +11,13 @@
 
 struct config {
 
+    enum class mode {
+        interactive,
+        goto_point,
+        query,
+    } mode;
+
     bool         verbose;
-    bool         interactive;
     bool         lock_x;
     bool         lock_y;
     uint8_t      goto_location;

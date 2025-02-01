@@ -19,14 +19,19 @@ std::expected<config, std::string> config::parseFromCLI(int argc, char** argv) {
     namespace po = boost::program_options;
     config config;
 
+    bool interactive = false;
+    bool goto_point = false;
+    bool query = false;
+
     po::options_description desc("ptzctrl (PTZ remote control)\nAllowed options:");
     desc.add_options()
             ("help,h",              "Display help message")
             ("verbose,v",           po::bool_switch(&config.verbose),                                               "Enable verbose output")
-            ("interactive,i",       po::bool_switch(&config.interactive),                                           "Enable interactive mode / input via gamepad")
+            ("interactive,i",       po::bool_switch(&interactive),                                                  "Enable interactive mode / input via gamepad")
+            ("goto,g",              po::bool_switch(&goto_point),                                                   "Go to a previously saved location, incompatible with --interactive")
+            ("query,q",             po::bool_switch(&query),                                                        "Query the current location, incompatible with --interactive")
             ("lock-x",              po::bool_switch(&config.lock_x),                                                "Lock x axis when in interactive mode")
             ("lock-y",              po::bool_switch(&config.lock_y),                                                "Lock y axis when in interactive mode")
-            ("goto,g",              po::value<uint16_t>(),                                                          "Go to a previously saved location, incompatible with --interactive")
             ("device-id,d",         po::value<int32_t>()->default_value(default_device_id),                         "Camera device ID, default is 1. Can be controlled in interactive mode")
             ("ip-address,a",        po::value<std::string>()->default_value(std::string(default_ip_address)),     "IP address to bind to")
             ("ip-port,p",           po::value<uint16_t>()->default_value(default_ip_port),                          "Port to bind to")
@@ -46,10 +51,24 @@ std::expected<config, std::string> config::parseFromCLI(int argc, char** argv) {
             return std::unexpected(ss.str());
         }
 
-        if (vm.count("goto")) {
-            if (config.interactive) {
+        if (goto_point) {
+            if (interactive) {
                 std::stringstream ss;
                 ss << "Error: cannot use --goto and --interactive at the same time" << std::endl;
+                ss << desc;
+                return std::unexpected(ss.str());
+            }
+
+            if (query) {
+                std::stringstream ss;
+                ss << "Error: cannot use --goto and --query at the same time" << std::endl;
+                ss << desc;
+                return std::unexpected(ss.str());
+            }
+
+            if (vm.contains("device-id")) {
+                std::stringstream ss;
+                ss << "Must provide --device-id when using --goto" << std::endl;
                 ss << desc;
                 return std::unexpected(ss.str());
             }
@@ -63,9 +82,27 @@ std::expected<config, std::string> config::parseFromCLI(int argc, char** argv) {
             }
 
             config.goto_location = static_cast<uint8_t>(preset);
-        } else if (!config.interactive) {
+        } else if (interactive) {
+            if (query) {
+                std::stringstream ss;
+                ss << "Error: cannot use --interactive and --query at the same time" << std::endl;
+                ss << desc;
+                return std::unexpected(ss.str());
+            }
+
+            config.mode = config::mode::interactive;
+        } else if (query) {
+            if (vm.contains("device-id")) {
+                std::stringstream ss;
+                ss << "Must provide --device-id when using --query" << std::endl;
+                ss << desc;
+                return std::unexpected(ss.str());
+            }
+
+            config.mode = config::mode::query;
+        } else {
             std::stringstream ss;
-            ss << "Error: either --goto or --interactive must be specified" << std::endl;
+            ss << "Error: either --goto, --query or --interactive must be specified" << std::endl;
             ss << desc;
             return std::unexpected(ss.str());
         }

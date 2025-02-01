@@ -28,7 +28,7 @@ std::expected<config, std::string> config::parseFromCLI(int argc, char** argv) {
     desc.add_options()
             ("help,h",              "Display help message")
             ("verbose,v",           po::bool_switch(&config.verbose),                                               "Enable verbose output")
-            ("serial-device,d",     po::value<std::string>()->default_value(std::string(default_serial_device)),    "Serial device")
+            ("serial-device,d",     po::value<std::string>()->default_value(std::string(default_serial_device)),  "Serial device")
             ("serial-baud-rate,b",  po::value<uint32_t>()->default_value(default_serial_baud_rate),                 "Serial baud rate")
             ("serial-timeout,s",    po::value<uint32_t>()->default_value(default_serial_timeout),                   "Serial timeout to await response in bytes being sent.\n"
                                                                                                                     "  - If this is greater than zero, the server will wait for a response from the client.\n"
@@ -36,12 +36,12 @@ std::expected<config, std::string> config::parseFromCLI(int argc, char** argv) {
                                                                                                                     "    In case no response is received within the timeout, the server will respond with an empty packet.\n"
                                                                                                                     "  - If this is equal to zero, no tcp packet will be sent back.")
             ("modbus-enable,m",     po::bool_switch(&config.modbus_enable),                                         "Enable Modbus communication")
-            ("ip-address,a",        po::value<std::string>()->default_value(std::string(default_ip_address)),       "IP address to bind to")
+            ("ip-address,a",        po::value<std::string>()->default_value(std::string(default_ip_address)),     "IP address to bind to")
             ("ip-port,p",           po::value<uint16_t>()->default_value(default_ip_port),                          "Port to bind to")
             ("tls-enable,t",        po::bool_switch(&config.tls_enable),                                            "Enable TLS")
-            ("tls-keyfile,k",       po::value<std::string>()->default_value(std::string(default_tls_keyfile)),      "Path to TLS key file")
-            ("tls-certfile,c",      po::value<std::string>()->default_value(std::string(default_tls_certfile)),     "Path to TLS certificate file")
-            ("tls-ca-file,f",       po::value<std::string>()->default_value(std::string(default_tls_ca_file)),      "Path to TLS CA file");
+            ("tls-keyfile,k",       po::value<std::string>()->default_value(std::string(default_tls_keyfile)),     "Path to TLS key file")
+            ("tls-certfile,c",      po::value<std::string>()->default_value(std::string(default_tls_certfile)),    "Path to TLS certificate file")
+            ("tls-ca-file,f",       po::value<std::string>()->default_value(std::string(default_tls_ca_file)),     "Path to TLS CA file");
 
     po::variables_map vm;
     try {

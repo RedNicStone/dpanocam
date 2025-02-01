@@ -19,9 +19,9 @@ public:
 };
 
 
-class pain_stream : public abstract_stream {
+class plain_stream : public abstract_stream {
 public:
-    explicit pain_stream(boost::asio::ip::tcp::socket socket) : socket(std::move(socket)) {}
+    explicit plain_stream(boost::asio::ip::tcp::socket socket) : socket(std::move(socket)) {}
 
     std::size_t read_some(const boost::asio::mutable_buffer& buffer, boost::system::error_code& ec) override {
         return socket.read_some(buffer, ec);

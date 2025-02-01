@@ -33,10 +33,13 @@ public:
         Turbo   = 0xFF,
     };
 
-    std::expected<void, std::string> sendCommand(MovementCommand command, MovementSpeed panSpeed, MovementSpeed tiltSpeed);
-    std::expected<void, std::string> sendCustomCommand(uint16_t command, uint16_t data);
+    bool verbose = false;
+
+    std::expected<std::vector<uint8_t>, std::string> sendCommand(MovementCommand command, MovementSpeed panSpeed, MovementSpeed tiltSpeed);
+    std::expected<std::vector<uint8_t>, std::string> sendCustomCommand(uint16_t command, uint16_t data);
 
     void setDevice(uint8_t device) { slaveId = device; }
+    void setVerbose(bool verbose) { this->verbose = verbose; }
 
     pelco_d(const pelco_d&) = delete;
     pelco_d& operator=(const pelco_d&) = delete;

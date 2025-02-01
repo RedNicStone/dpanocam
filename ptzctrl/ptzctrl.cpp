@@ -76,14 +76,46 @@ int main(int argc, char** argv) {
 
     if (conf.verbose)
         std::cout << "-- Connecting to server" << '\n';
+
     pelco_d pelco(ipClient);
     pelco.setDevice(conf.device_id);
+    pelco.setVerbose(conf.verbose);
 
-    if (!conf.interactive) {
-        if (conf.verbose)
-            std::cout << "- Going to preset " << static_cast<uint32_t>(conf.goto_location) << '\n';
-        handle_error(pelco.sendCustomCommand(0x0007, static_cast<uint16_t>(conf.goto_location)));
-        return 0;
+    switch (conf.mode) {
+        case config::mode::goto_point: {
+            if (conf.verbose)
+                std::cout << "- Going to preset " << static_cast<uint32_t>(conf.goto_location) << '\n';
+            handle_error(pelco.sendCustomCommand(0x0007, conf.goto_location));
+            return 0;
+        }
+        case config::mode::query: {
+            if (conf.verbose)
+                std::cout << "- Querying current location" << '\n';
+            auto pan = handle_error(pelco.sendCustomCommand(0x0051, 0x0000));
+            auto tilt = handle_error(pelco.sendCustomCommand(0x0053, 0x0000));
+
+            if (pan.size() != 7 || tilt.size() != 7) {
+                std::cerr << "Invalid response from device" << std::endl;
+                return 1;
+            }
+
+            if (pan[0] != 0xFF || tilt[0] != 0xFF ||
+                pan[1] != conf.device_id || tilt[1] != conf.device_id ||
+                pan[2] != 0x00 || tilt[2] != 0x00 ||
+                pan[3] != 0x59 || tilt[3] != 0x5B) {
+                std::cerr << "Invalid response from device" << std::endl;
+                return 1;
+            }
+
+            const uint16_t pan_pos  = *reinterpret_cast<uint16_t*>(&pan[4]);
+            const uint16_t tilt_pos = *reinterpret_cast<uint16_t*>(&tilt[4]);
+
+            std::cout << static_cast<uint32_t>(pan_pos) << ',' << static_cast<uint32_t>(tilt_pos) << std::endl;
+
+            return 0;
+        }
+        case config::mode::interactive:
+            break;
     }
 
     if (conf.verbose)
@@ -105,7 +137,7 @@ int main(int argc, char** argv) {
     if (conf.verbose)
         std::cout << "Number of gamepads: " << numGamepads << std::endl;
 
-    uint32_t gamepad_id = gamepads[0];
+    const uint32_t gamepad_id = gamepads[0];
     SDL_free(gamepads);
 
     SDL_Gamepad* gamepad = SDL_OpenGamepad(gamepad_id);

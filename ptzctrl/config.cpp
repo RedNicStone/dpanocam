@@ -45,7 +45,7 @@ std::expected<config, std::string> config::parseFromCLI(int argc, char** argv) {
         po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
 
-        if (vm.count("help") || vm.empty()) {
+        if (vm.contains("help") || vm.empty()) {
             std::stringstream ss;
             ss << desc;
             return std::unexpected(ss.str());
@@ -66,7 +66,7 @@ std::expected<config, std::string> config::parseFromCLI(int argc, char** argv) {
                 return std::unexpected(ss.str());
             }
 
-            if (vm.contains("device-id")) {
+            if (!vm.contains("device-id")) {
                 std::stringstream ss;
                 ss << "Must provide --device-id when using --goto" << std::endl;
                 ss << desc;
@@ -92,7 +92,7 @@ std::expected<config, std::string> config::parseFromCLI(int argc, char** argv) {
 
             config.mode = config::mode::interactive;
         } else if (query) {
-            if (vm.contains("device-id")) {
+            if (!vm.contains("device-id")) {
                 std::stringstream ss;
                 ss << "Must provide --device-id when using --query" << std::endl;
                 ss << desc;
